@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wittgenstein vs. Wittgenstein</title>
-    <script src="markov.js"></script>
+    <script src="./markov.js"></script>
     <style>
         .comparison {
             display: flex;
@@ -38,8 +38,8 @@
     </div>
 
     <script>
-        const bookFile1 = '../tractatus.md'; // Replace with your first book's filename
-        const bookFile2 = '../brown_book.md'; // Replace with your second book's filename
+        const bookFile1 = './tractatus.md'; // Replace with your first book's filename
+        const bookFile2 = './brown_book.md'; // Replace with your second book's filename
 
         async function generateAndCompare() {
             const seedText = document.getElementById('seedText').value;
@@ -72,8 +72,8 @@
             }
 
             await Promise.all([
-                processBook(bookFile1, outputDiv1),
-                processBook(bookFile2, outputDiv2)
+                processBook('./tractatus.md', outputDiv1),
+                processBook('./brown_book.md', outputDiv2)
             ]);
         }
     </script>
