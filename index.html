@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wittgenstein vs. Wittgenstein</title>
+    <script src="markov.js"></script>
+    <style>
+        .comparison {
+            display: flex;
+            gap: 20px;
+        }
+        .output-box {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wittgenstein vs. Wittgenstein</h1>
+
+    <label for="seedText"><em>Start with:</em></label>
+    <input type="text" id="seedText" name="seedText">
+    <p>(two or more words)</p><br><br>
+
+    <button onclick="generateAndCompare()">Generate</button><br><br>
+
+    <div class="comparison">
+        <div class="output-box">
+            <h2>Tractatus Wittgenstein says:</h2>
+            <div id="output1"></div>
+        </div>
+        <div class="output-box">
+            <h2>Brown Book Wittgenstein says:</h2>
+            <div id="output2"></div>
+        </div>
+    </div>
+
+    <script>
+        const bookFile1 = 'tractatus.md'; // Replace with your first book's filename
+        const bookFile2 = 'brown_book.md'; // Replace with your second book's filename
+
+        async function generateAndCompare() {
+            const seedText = document.getElementById('seedText').value;
+            const outputDiv1 = document.getElementById('output1');
+            const outputDiv2 = document.getElementById('output2');
+
+            if (seedText.split(' ').filter(word => word.trim() !== '').length < 2) {
+                alert("Please enter a sentence with at least two words.");
+                return;
+            }
+
+            outputDiv1.textContent = "Generating...";
+            outputDiv2.textContent = "Generating...";
+
+            async function processBook(filepath, outputElement) {
+                const markdownContent = await readMarkdownFile(filepath);
+                if (markdownContent) {
+                    const cleanedText = cleanText(markdownContent);
+                    const words = cleanedText.split(' ').filter(word => word !== '');
+                    if (words.length > 3) {
+                        const markovModel = buildMarkovChain(words);
+                        const generatedOutput = generateText(markovModel, 100, seedText);
+                        outputElement.textContent = generatedOutput;
+                    } else {
+                        outputElement.textContent = "The book does not have enough words.";
+                    }
+                } else {
+                    outputElement.textContent = `Error reading file: ${filepath}`;
+                }
+            }
+
+            await Promise.all([
+                processBook(bookFile1, outputDiv1),
+                processBook(bookFile2, outputDiv2)
+            ]);
+        }
+    </script>
+</body>
+</html>
