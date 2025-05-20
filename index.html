@@ -84,7 +84,7 @@
             return markovChain;
         }
 
-        function generateText(markovChain, length = 200, seed = null) {
+        function generateText(markovChain, length = 100, seed = null) {
             if (Object.keys(markovChain).length === 0) {
                 return "Cannot generate text from an empty Markov chain.";
             }
@@ -141,7 +141,7 @@
                     const words = cleanedText.split(' ').filter(word => word !== '');
                     if (words.length > 2) {
                         const markovModel = buildMarkovChain(words);
-                        const generatedOutput = generateText(markovModel, 200, seedText);
+                        const generatedOutput = generateText(markovModel, 100, seedText);
                         outputElement.textContent = generatedOutput;
                     } else {
                         outputElement.textContent = "The book does not have enough words.";
