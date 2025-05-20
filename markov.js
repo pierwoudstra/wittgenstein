@@ -79,7 +79,7 @@ function generateText(markovChain, length = 500, seed = null) {
 }
 
 async function main() {
-  const filepath = 'your_book.md'; // Replace with your file path
+  const filepath = "tractatus.md"; // Replace with your file path
   const markdownContent = await readMarkdownFile(filepath);
 
   if (markdownContent) {
