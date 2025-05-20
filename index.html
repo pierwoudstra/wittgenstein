@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wittgenstein vs. Wittgenstein</title>
-    <script src="./markov.js"></script>
+    <script src="markov.js"></script>
     <style>
         .comparison {
             display: flex;
@@ -24,7 +24,7 @@
     <input type="text" id="seedText" name="seedText">
     <p>(two or more words)</p><br><br>
 
-    <button onclick="generateAndCompare()">Generate</button><br><br>
+    <button onclick="generateAndCompare()">Generate and Compare</button><br><br>
 
     <div class="comparison">
         <div class="output-box">
@@ -38,8 +38,88 @@
     </div>
 
     <script>
-        const bookFile1 = './tractatus.md'; // Replace with your first book's filename
-        const bookFile2 = './brown_book.md'; // Replace with your second book's filename
+        const bookFile1 = 'tractatus.md'; // Path relative to index.html
+        const bookFile2 = 'brown_book.md'; // Path relative to index.html
+
+        async function readMarkdownFile(filepath) {
+            try {
+                const response = await fetch(filepath);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} for ${filepath}`);
+                }
+                const content = await response.text();
+                return content;
+            } catch (error) {
+                console.error(`Error reading file (${filepath}): ${error}`);
+                return null;
+            }
+        }
+
+        function cleanText(text) {
+            if (!text) {
+                return "";
+            }
+            text = text.replace(/#+\s*/g, '');
+            text = text.replace(/\*+/g, '');
+            text = text.replace(/_+/g, '');
+            text = text.replace(/\[.*?\]\(.*?\)/g, '');
+            text = text.replace(/`.*?`/g, '');
+            text = text.replace(/[^\w\s]/g, '').toLowerCase();
+            return text;
+        }
+
+        function buildMarkovChain(words, order = 2) {
+            const markovChain = {};
+            if (words.length <= order) {
+                return markovChain;
+            }
+            for (let i = 0; i < words.length - order; i++) {
+                const currentState = words.slice(i, i + order).join(' ');
+                const nextWord = words[i + order];
+                if (!markovChain[currentState]) {
+                    markovChain[currentState] = [];
+                }
+                markovChain[currentState].push(nextWord);
+            }
+            return markovChain;
+        }
+
+        function generateText(markovChain, length = 200, seed = null) {
+            if (Object.keys(markovChain).length === 0) {
+                return "Cannot generate text from an empty Markov chain.";
+            }
+
+            const order = 2;
+
+            let seedState;
+            if (!seed) {
+                const keys = Object.keys(markovChain);
+                seedState = keys[Math.floor(Math.random() * keys.length)];
+            } else if (typeof seed === 'string') {
+                const seedWords = cleanText(seed).split(' ').filter(word => word !== '');
+                if (seedWords.length >= order) {
+                    seedState = seedWords.slice(-order).join(' ');
+                } else {
+                    return `Seed text needs to be at least ${order} words long for this order Markov chain.`;
+                }
+            } else if (Array.isArray(seed) && seed.length === order && seed.every(word => typeof word === 'string')) {
+                seedState = seed.join(' ');
+            } else {
+                return "Invalid seed format.";
+            }
+
+            const generatedText = seedState.split(' ');
+            for (let i = 0; i < length - order; i++) {
+                const currentState = generatedText.slice(-order).join(' ');
+                if (markovChain[currentState]) {
+                    const nextWord = markovChain[currentState][Math.floor(Math.random() * markovChain[currentState].length)];
+                    generatedText.push(nextWord);
+                } else {
+                    break;
+                }
+            }
+            return generatedText.join(' ');
+        }
 
         async function generateAndCompare() {
             const seedText = document.getElementById('seedText').value;
@@ -47,7 +127,7 @@
             const outputDiv2 = document.getElementById('output2');
 
             if (seedText.split(' ').filter(word => word.trim() !== '').length < 2) {
-                alert("Please enter a sentence with at least two words.");
+                alert("Please enter a seed text with at least two words.");
                 return;
             }
 
@@ -59,9 +139,9 @@
                 if (markdownContent) {
                     const cleanedText = cleanText(markdownContent);
                     const words = cleanedText.split(' ').filter(word => word !== '');
-                    if (words.length > 3) {
+                    if (words.length > 2) {
                         const markovModel = buildMarkovChain(words);
-                        const generatedOutput = generateText(markovModel, 100, seedText);
+                        const generatedOutput = generateText(markovModel, 200, seedText);
                         outputElement.textContent = generatedOutput;
                     } else {
                         outputElement.textContent = "The book does not have enough words.";
@@ -72,8 +152,8 @@
             }
 
             await Promise.all([
-                processBook('./tractatus.md', outputDiv1),
-                processBook('./brown_book.md', outputDiv2)
+                processBook(bookFile1, outputDiv1),
+                processBook(bookFile2, outputDiv2)
             ]);
         }
     </script>
